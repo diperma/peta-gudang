@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peta Sebaran Pembangunan Gudang</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <!-- SheetJS for reading Excel files -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 0.5rem;
+            z-index: 1;
+        }
+
+        .custom-popup .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .custom-div-icon {
+            background: transparent;
+            border: none;
+        }
+
+        .marker-icon {
+            width: 32px;
+            height: 32px;
+            fill: #2563eb;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            border-radius: 0.5rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 font-sans">
+
+    <div class="max-w-7xl mx-auto p-4 md:p-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Visualisasi Sebaran Pembangunan Gudang</h1>
+            <p class="text-gray-600 mt-2">Data Pemetaan Proyek 100% Selesai di Seluruh Indonesia</p>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-sm text-gray-500 uppercase font-semibold">Total Lokasi</p>
+                <p id="total-points" class="text-4xl font-bold text-blue-600">---</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-sm text-gray-500 uppercase font-semibold">Status Pembangunan</p>
+                <p class="text-4xl font-bold text-green-600">100%</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-sm text-gray-500 uppercase font-semibold">Cakupan Wilayah</p>
+                <p id="total-provinces" class="text-4xl font-bold text-orange-500">---</p>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="bg-white p-2 rounded-2xl shadow-lg border border-gray-200 relative">
+            <div id="map"></div>
+            <div id="loading" class="loading-overlay">
+                <div class="text-center">
+                    <div class="spinner mx-auto mb-4"></div>
+                    <p class="text-gray-600">Memuat data dari Excel...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend & Footer -->
+        <footer class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
+            <div>
+                <p>* Klik pada lingkaran angka untuk memperbesar area (Zoom-in).</p>
+                <p>* Klik pada marker individu untuk melihat detail lokasi.</p>
+            </div>
+            <div class="md:text-right">
+                <p>Data terakhir diperbarui: 04 Februari 2026</p>
+                <p id="data-source" class="text-xs text-gray-400 mt-1"></p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- MarkerCluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <script>
+        // Excel file name
+        const EXCEL_FILE = 'data-gudang.xlsx';
+
+        // Initialize map
+        let map;
+        let markers;
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Initialize map
+            map = L.map('map').setView([-2.5489, 118.0149], 5);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Load data from Excel
+            try {
+                const warehouseData = await loadExcelData(EXCEL_FILE);
+                displayDataOnMap(warehouseData);
+
+                // Update data source info
+                document.getElementById('data-source').textContent = `Sumber: ${EXCEL_FILE}`;
+            } catch (error) {
+                console.error('Error loading Excel file:', error);
+                document.getElementById('loading').innerHTML = `
+                    <div class="text-center text-red-600">
+                        <p class="font-bold">Error memuat data</p>
+                        <p class="text-sm">${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+
+        async function loadExcelData(filename) {
+            // Fetch the Excel file - encode the filename to handle special characters
+            const encodedFilename = encodeURIComponent(filename);
+            const response = await fetch(encodedFilename);
+            if (!response.ok) {
+                throw new Error(`File tidak ditemukan: ${filename}`);
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+
+            // Parse Excel file using SheetJS
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            // Convert to JSON with header row
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+            // Get header row (first row)
+            const headers = jsonData[0];
+
+            // Find column indices
+            const codeIdx = headers.indexOf('code');
+            const provIdx = headers.indexOf('prov');
+            const kabIdx = headers.indexOf('kab');
+            const kecIdx = headers.indexOf('kec');
+            const desaIdx = headers.indexOf('desa');
+            const latIdx = headers.indexOf('lat');
+            const lngIdx = headers.indexOf('lng');
+            const statusIdx = headers.indexOf('Status');
+            const percentIdx = headers.indexOf('% Pembangunan');
+
+            // Convert data rows to objects
+            const warehouseData = [];
+            for (let i = 1; i < jsonData.length; i++) {
+                const row = jsonData[i];
+
+                // Skip empty rows or rows without valid coordinates
+                const lat = parseFloat(row[latIdx]);
+                const lng = parseFloat(row[lngIdx]);
+
+                if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+                    continue;
+                }
+
+                warehouseData.push({
+                    code: row[codeIdx] || '',
+                    prov: row[provIdx] || '',
+                    kab: row[kabIdx] || '',
+                    kec: row[kecIdx] || '',
+                    desa: row[desaIdx] || '',
+                    lat: lat,
+                    lng: lng,
+                    status: row[statusIdx] || 'Selesai',
+                    percent: row[percentIdx] || 100
+                });
+            }
+
+            return warehouseData;
+        }
+
+        function displayDataOnMap(warehouseData) {
+            // Hide loading overlay
+            document.getElementById('loading').style.display = 'none';
+
+            // Marker Cluster Group
+            markers = L.markerClusterGroup();
+
+            // Custom icon
+            const warehouseIcon = L.divIcon({
+                html: '<svg xmlns="http://www.w3.org/2000/svg" class="marker-icon" viewBox="0 0 20 20" fill="#2563eb"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>',
+                className: 'custom-div-icon',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32]
+            });
+
+            // Add markers
+            warehouseData.forEach(point => {
+                const marker = L.marker([point.lat, point.lng], { icon: warehouseIcon });
+
+                const statusColor = point.percent >= 100 ? '#15803d' : '#ca8a04';
+                const statusBg = point.percent >= 100 ? '#dcfce7' : '#fef9c3';
+
+                const popupContent = `
+                    <div style="padding: 8px; min-width: 220px;">
+                        <h3 style="font-weight: bold; color: #1d4ed8; font-size: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 8px;">${point.desa}</h3>
+                        <table style="font-size: 12px; width: 100%;">
+                            <tr><td style="font-weight: 600; padding: 4px 0; width: 90px;">Kode</td><td>: ${point.code}</td></tr>
+                            <tr><td style="font-weight: 600; padding: 4px 0;">Kecamatan</td><td>: ${point.kec}</td></tr>
+                            <tr><td style="font-weight: 600; padding: 4px 0;">Kabupaten</td><td>: ${point.kab}</td></tr>
+                            <tr><td style="font-weight: 600; padding: 4px 0;">Provinsi</td><td>: ${point.prov}</td></tr>
+                            <tr><td style="font-weight: 600; padding: 4px 0;">Koordinat</td><td>: ${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}</td></tr>
+                        </table>
+                        <div style="margin-top: 12px; background: ${statusBg}; color: ${statusColor}; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 9999px; display: inline-block;">
+                            STATUS: ${point.percent}% ${point.status.toUpperCase()}
+                        </div>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                markers.addLayer(marker);
+            });
+
+            map.addLayer(markers);
+
+            // Update stats
+            document.getElementById('total-points').innerText = warehouseData.length;
+            const provinces = new Set(warehouseData.map(p => p.prov));
+            document.getElementById('total-provinces').innerText = provinces.size;
+
+            // Fit bounds
+            if (warehouseData.length > 0) {
+                const group = new L.featureGroup(warehouseData.map(d => L.marker([d.lat, d.lng])));
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+
+            // Force map to recalculate size
+            setTimeout(function () {
+                map.invalidateSize();
+            }, 100);
+        }
+    </script>
+</body>
+
+</html>
