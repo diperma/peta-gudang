@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peta Sebaran Pembangunan Gudang</title>
+    <title>Peta Sebaran Pembangunan Gerai KDKMP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -34,7 +34,6 @@
         .marker-icon {
             width: 32px;
             height: 32px;
-            fill: #2563eb;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
@@ -66,6 +65,29 @@
                 transform: rotate(360deg);
             }
         }
+
+        .filter-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        .filter-select:disabled {
+            background-color: #f3f4f6;
+            cursor: not-allowed;
+        }
+
+        .spinner-sm {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 
@@ -73,9 +95,91 @@
 
     <div class="max-w-7xl mx-auto p-4 md:p-8">
         <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800">Visualisasi Sebaran Pembangunan Gudang</h1>
-            <p class="text-gray-600 mt-2">Data Pemetaan Proyek 100% Selesai di Seluruh Indonesia</p>
+            <h1 class="text-3xl font-bold text-gray-800">Visualisasi Sebaran Pembangunan Gerai KDKMP</h1>
+            <p class="text-gray-600 mt-2">Data Pemetaan dari Portal KDKMP</p>
         </header>
+
+        <!-- Filter Section -->
+        <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                        clip-rule="evenodd" />
+                </svg>
+                Filter Lokasi
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Provinsi -->
+                <div>
+                    <label for="filter-provinsi" class="block text-sm font-medium text-gray-600 mb-1">Provinsi</label>
+                    <select id="filter-provinsi"
+                        class="filter-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option value="">Semua Provinsi</option>
+                    </select>
+                </div>
+                <!-- Kabupaten -->
+                <div>
+                    <label for="filter-kabupaten"
+                        class="block text-sm font-medium text-gray-600 mb-1">Kabupaten/Kota</label>
+                    <select id="filter-kabupaten"
+                        class="filter-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        disabled>
+                        <option value="">Pilih Provinsi dulu</option>
+                    </select>
+                </div>
+                <!-- Kecamatan -->
+                <div>
+                    <label for="filter-kecamatan" class="block text-sm font-medium text-gray-600 mb-1">Kecamatan</label>
+                    <select id="filter-kecamatan"
+                        class="filter-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        disabled>
+                        <option value="">Pilih Kabupaten dulu</option>
+                    </select>
+                </div>
+                <!-- Desa -->
+                <div>
+                    <label for="filter-desa" class="block text-sm font-medium text-gray-600 mb-1">Desa/Kelurahan</label>
+                    <select id="filter-desa"
+                        class="filter-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        disabled>
+                        <option value="">Pilih Kecamatan dulu</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="mt-4 pt-4 border-t border-gray-100">
+                <h3 class="text-sm font-medium text-gray-600 mb-3">Filter Status</h3>
+                <div class="flex flex-wrap gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" id="filter-progress-100"
+                            class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2">
+                        <span class="text-sm text-gray-700 group-hover:text-gray-900 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                            Hanya Progress 100%
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" id="filter-mulai-bangun"
+                            class="w-4 h-4 text-yellow-600 bg-gray-100 border-gray-300 rounded focus:ring-yellow-500 focus:ring-2">
+                        <span class="text-sm text-gray-700 group-hover:text-gray-900 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+                            Sudah Mulai Bangun
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-3 mt-4">
+                <button id="btn-reset-filter"
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium">
+                    Reset Filter
+                </button>
+                <span id="filter-status" class="text-sm text-gray-500 self-center ml-auto"></span>
+            </div>
+        </div>
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -84,12 +188,99 @@
                 <p id="total-points" class="text-4xl font-bold text-blue-600">---</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <p class="text-sm text-gray-500 uppercase font-semibold">Status Pembangunan</p>
-                <p class="text-4xl font-bold text-green-600">100%</p>
+                <p class="text-sm text-gray-500 uppercase font-semibold">Sudah Mulai Bangun</p>
+                <p id="total-started" class="text-4xl font-bold text-green-600">---</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <p class="text-sm text-gray-500 uppercase font-semibold">Cakupan Wilayah</p>
-                <p id="total-provinces" class="text-4xl font-bold text-orange-500">---</p>
+                <p class="text-sm text-gray-500 uppercase font-semibold">Selesai 100%</p>
+                <p id="total-complete" class="text-4xl font-bold text-orange-500">---</p>
+            </div>
+        </div>
+
+        <!-- Statistics Table (moved above map) -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 mb-8 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
+                <h2 id="stats-table-title" class="text-lg font-semibold text-white flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                        <path fill-rule="evenodd"
+                            d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Rekap Data Per Provinsi
+                </h2>
+                <button id="btn-download-csv"
+                    class="flex items-center gap-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Unduh CSV
+                </button>
+            </div>
+            <!-- Back Button Container -->
+            <div id="table-back-button-container" class="px-4 py-3 bg-gray-50 border-b border-gray-200 hidden">
+                <button id="btn-table-back"
+                    class="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span id="btn-table-back-text">Kembali</span>
+                </button>
+            </div>
+            <div class="max-h-[400px] overflow-y-auto">
+                <table class="w-full">
+                    <thead class="bg-blue-50 sticky top-0 z-10">
+                        <tr>
+                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-12 cursor-pointer hover:bg-blue-100 transition select-none"
+                                data-sort="no">
+                                <span class="flex items-center justify-center gap-1">No <span
+                                        class="sort-indicator text-blue-500"></span></span>
+                            </th>
+                            <th id="stats-col-name"
+                                class="px-4 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-blue-100 transition select-none"
+                                data-sort="name">
+                                <span class="flex items-center gap-1">Provinsi <span
+                                        class="sort-indicator text-blue-500"></span></span>
+                            </th>
+                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 cursor-pointer hover:bg-blue-100 transition select-none"
+                                data-sort="jumlahDesa">
+                                <span class="flex items-center justify-center gap-1">Jumlah Desa <span
+                                        class="sort-indicator text-blue-500"></span></span>
+                            </th>
+                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 cursor-pointer hover:bg-blue-100 transition select-none"
+                                data-sort="pemetaanMasuk">
+                                <span class="flex items-center justify-center gap-1">Lahan Terdaftar <span
+                                        class="sort-indicator text-blue-500"></span></span>
+                            </th>
+                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 cursor-pointer hover:bg-blue-100 transition select-none"
+                                data-sort="persenPemetaan">
+                                <span class="flex items-center justify-center gap-1">% Pemetaan <span
+                                        class="sort-indicator text-blue-500"></span></span>
+                            </th>
+                            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 cursor-pointer hover:bg-blue-100 transition select-none"
+                                data-sort="persenPembangunan">
+                                <span class="flex items-center justify-center gap-1">% Pembangunan <span
+                                        class="sort-indicator text-blue-500"></span></span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-table-body">
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                                <div class="flex flex-col items-center gap-2">
+                                    <div class="spinner-sm"></div>
+                                    <span>Memuat data statistik...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot id="stats-table-footer" class="bg-blue-100 font-semibold sticky bottom-0">
+                    </tfoot>
+                </table>
             </div>
         </div>
 
@@ -99,7 +290,7 @@
             <div id="loading" class="loading-overlay">
                 <div class="text-center">
                     <div class="spinner mx-auto mb-4"></div>
-                    <p class="text-gray-600">Memuat data dari Excel...</p>
+                    <p id="loading-text" class="text-gray-600">Memuat data dari API...</p>
                 </div>
             </div>
         </div>
@@ -109,9 +300,18 @@
             <div>
                 <p>* Klik pada lingkaran angka untuk memperbesar area (Zoom-in).</p>
                 <p>* Klik pada marker individu untuk melihat detail lokasi.</p>
+                <div class="flex gap-4 mt-2">
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500"></span> 100%
+                        Selesai</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-500"></span> Dalam
+                        Proses</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-400"></span> Belum
+                        Mulai</span>
+                </div>
             </div>
             <div class="md:text-right">
-                <p>Data terakhir diperbarui: 04 Februari 2026</p>
+                <p>Sumber: <a href="https://pemetaan-lahan.portalkdkmp.id" target="_blank"
+                        class="text-blue-600 hover:underline">pemetaan-lahan.portalkdkmp.id</a></p>
                 <p id="data-source" class="text-xs text-gray-400 mt-1"></p>
             </div>
         </footer>
@@ -123,161 +323,1019 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 
     <script>
-        // Excel file name
-        const EXCEL_FILE = 'data-gudang.xlsx';
+        // API Base URL
+        const API_BASE = 'https://pemetaan-lahan.portalkdkmp.id/api';
 
-        // Initialize map
+        // State
         let map;
         let markers;
+        let allMarkersData = [];
+        let currentTableData = []; // Stores current table data for CSV export
+        let currentTableLevel = 'Provinsi'; // Current level name for file naming
+        let currentSortColumn = 'persenPemetaan'; // Default sort column (% Pemetaan)
+        let currentSortDirection = 'desc'; // Default sort direction (highest first)
+        let navigationHistory = []; // Track navigation history for back button
+
+        // DOM Elements
+        const filterProvinsi = document.getElementById('filter-provinsi');
+        const filterKabupaten = document.getElementById('filter-kabupaten');
+        const filterKecamatan = document.getElementById('filter-kecamatan');
+        const filterDesa = document.getElementById('filter-desa');
+        const filterProgress100 = document.getElementById('filter-progress-100');
+        const filterMulaiBangun = document.getElementById('filter-mulai-bangun');
+        const btnResetFilter = document.getElementById('btn-reset-filter');
+        const filterStatus = document.getElementById('filter-status');
+        const loadingOverlay = document.getElementById('loading');
+        const loadingText = document.getElementById('loading-text');
 
         document.addEventListener('DOMContentLoaded', async function () {
             // Initialize map
             map = L.map('map').setView([-2.5489, 118.0149], 5);
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community',
                 maxZoom: 19
             }).addTo(map);
 
-            // Load data from Excel
-            try {
-                const warehouseData = await loadExcelData(EXCEL_FILE);
-                displayDataOnMap(warehouseData);
+            // Add labels overlay layer (CartoDB Voyager Labels)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 19,
+                pane: 'overlayPane' // Ensure labels appear on top
+            }).addTo(map);
 
-                // Update data source info
-                document.getElementById('data-source').textContent = `Sumber: ${EXCEL_FILE}`;
-            } catch (error) {
-                console.error('Error loading Excel file:', error);
-                document.getElementById('loading').innerHTML = `
-                    <div class="text-center text-red-600">
-                        <p class="font-bold">Error memuat data</p>
-                        <p class="text-sm">${error.message}</p>
-                    </div>
-                `;
-            }
+            // Initialize marker cluster
+            markers = L.markerClusterGroup();
+            map.addLayer(markers);
+
+            // Load provinces
+            await loadProvinces();
+
+            // Load initial markers (first page)
+            await loadMarkers();
+
+            // Setup event listeners
+            setupEventListeners();
         });
 
-        async function loadExcelData(filename) {
-            // Fetch the Excel file - encode the filename to handle special characters
-            const encodedFilename = encodeURIComponent(filename);
-            const response = await fetch(encodedFilename);
-            if (!response.ok) {
-                throw new Error(`File tidak ditemukan: ${filename}`);
-            }
+        // Setup event listeners
+        function setupEventListeners() {
+            filterProvinsi.addEventListener('change', async function () {
+                const provinsiId = this.value;
 
-            const arrayBuffer = await response.arrayBuffer();
+                // Reset dependent dropdowns
+                resetDropdown(filterKabupaten, 'Pilih Provinsi dulu');
+                resetDropdown(filterKecamatan, 'Pilih Kabupaten dulu');
+                resetDropdown(filterDesa, 'Pilih Kecamatan dulu');
 
-            // Parse Excel file using SheetJS
-            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-
-            // Convert to JSON with header row
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-            // Get header row (first row)
-            const headers = jsonData[0];
-
-            // Find column indices
-            const codeIdx = headers.indexOf('code');
-            const provIdx = headers.indexOf('prov');
-            const kabIdx = headers.indexOf('kab');
-            const kecIdx = headers.indexOf('kec');
-            const desaIdx = headers.indexOf('desa');
-            const latIdx = headers.indexOf('lat');
-            const lngIdx = headers.indexOf('lng');
-            const statusIdx = headers.indexOf('Status');
-            const percentIdx = headers.indexOf('% Pembangunan');
-
-            // Convert data rows to objects
-            const warehouseData = [];
-            for (let i = 1; i < jsonData.length; i++) {
-                const row = jsonData[i];
-
-                // Skip empty rows or rows without valid coordinates
-                const lat = parseFloat(row[latIdx]);
-                const lng = parseFloat(row[lngIdx]);
-
-                if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
-                    continue;
+                if (provinsiId) {
+                    await loadKabupaten(provinsiId);
                 }
-
-                warehouseData.push({
-                    code: row[codeIdx] || '',
-                    prov: row[provIdx] || '',
-                    kab: row[kabIdx] || '',
-                    kec: row[kecIdx] || '',
-                    desa: row[desaIdx] || '',
-                    lat: lat,
-                    lng: lng,
-                    status: row[statusIdx] || 'Selesai',
-                    percent: row[percentIdx] || 100
-                });
-            }
-
-            return warehouseData;
-        }
-
-        function displayDataOnMap(warehouseData) {
-            // Hide loading overlay
-            document.getElementById('loading').style.display = 'none';
-
-            // Marker Cluster Group
-            markers = L.markerClusterGroup();
-
-            // Custom icon
-            const warehouseIcon = L.divIcon({
-                html: '<svg xmlns="http://www.w3.org/2000/svg" class="marker-icon" viewBox="0 0 20 20" fill="#2563eb"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>',
-                className: 'custom-div-icon',
-                iconSize: [32, 32],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -32]
+                // Auto-load markers when filter changes
+                await loadMarkers();
             });
 
-            // Add markers
-            warehouseData.forEach(point => {
-                const marker = L.marker([point.lat, point.lng], { icon: warehouseIcon });
+            filterKabupaten.addEventListener('change', async function () {
+                const kabupatenId = this.value;
 
-                const statusColor = point.percent >= 100 ? '#15803d' : '#ca8a04';
-                const statusBg = point.percent >= 100 ? '#dcfce7' : '#fef9c3';
+                // Reset dependent dropdowns
+                resetDropdown(filterKecamatan, 'Pilih Kabupaten dulu');
+                resetDropdown(filterDesa, 'Pilih Kecamatan dulu');
 
-                const popupContent = `
-                    <div style="padding: 8px; min-width: 220px;">
-                        <h3 style="font-weight: bold; color: #1d4ed8; font-size: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 8px;">${point.desa}</h3>
-                        <table style="font-size: 12px; width: 100%;">
-                            <tr><td style="font-weight: 600; padding: 4px 0; width: 90px;">Kode</td><td>: ${point.code}</td></tr>
-                            <tr><td style="font-weight: 600; padding: 4px 0;">Kecamatan</td><td>: ${point.kec}</td></tr>
-                            <tr><td style="font-weight: 600; padding: 4px 0;">Kabupaten</td><td>: ${point.kab}</td></tr>
-                            <tr><td style="font-weight: 600; padding: 4px 0;">Provinsi</td><td>: ${point.prov}</td></tr>
-                            <tr><td style="font-weight: 600; padding: 4px 0;">Koordinat</td><td>: ${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}</td></tr>
-                        </table>
-                        <div style="margin-top: 12px; background: ${statusBg}; color: ${statusColor}; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 9999px; display: inline-block;">
-                            STATUS: ${point.percent}% ${point.status.toUpperCase()}
+                if (kabupatenId) {
+                    await loadKecamatan(kabupatenId);
+                }
+                // Auto-load markers when filter changes
+                await loadMarkers();
+            });
+
+            filterKecamatan.addEventListener('change', async function () {
+                const kecamatanId = this.value;
+
+                // Reset dependent dropdown
+                resetDropdown(filterDesa, 'Pilih Kecamatan dulu');
+
+                if (kecamatanId) {
+                    await loadDesa(kecamatanId);
+                }
+                // Auto-load markers when filter changes
+                await loadMarkers();
+            });
+
+            filterDesa.addEventListener('change', async function () {
+                // Auto-load markers when filter changes
+                await loadMarkers();
+            });
+
+            // Status filter checkboxes - auto-load on change
+            filterProgress100.addEventListener('change', async function () {
+                await loadMarkers();
+            });
+
+            filterMulaiBangun.addEventListener('change', async function () {
+                await loadMarkers();
+            });
+
+            btnResetFilter.addEventListener('click', async function () {
+                filterProvinsi.value = '';
+                resetDropdown(filterKabupaten, 'Pilih Provinsi dulu');
+                resetDropdown(filterKecamatan, 'Pilih Kabupaten dulu');
+                resetDropdown(filterDesa, 'Pilih Kecamatan dulu');
+                filterProgress100.checked = false;
+                filterMulaiBangun.checked = false;
+                // Clear navigation history and hide back button
+                navigationHistory = [];
+                updateBackButton();
+                await loadMarkers();
+            });
+
+            // CSV Download button
+            document.getElementById('btn-download-csv').addEventListener('click', function () {
+                downloadTableAsCSV();
+            });
+
+            // Back button for table navigation
+            document.getElementById('btn-table-back').addEventListener('click', async function () {
+                await navigateBack();
+            });
+
+            // Setup table sorting
+            setupTableSorting();
+        }
+
+        // Setup table sorting event listeners
+        function setupTableSorting() {
+            const headers = document.querySelectorAll('thead th[data-sort]');
+            headers.forEach(header => {
+                header.addEventListener('click', function () {
+                    const sortColumn = this.getAttribute('data-sort');
+
+                    // Toggle direction if same column, otherwise default to desc
+                    if (currentSortColumn === sortColumn) {
+                        currentSortDirection = currentSortDirection === 'desc' ? 'asc' : 'desc';
+                    } else {
+                        currentSortColumn = sortColumn;
+                        currentSortDirection = 'desc'; // Default to descending for new column
+                    }
+
+                    // Re-render the table with new sort
+                    renderTableBody();
+                    updateSortIndicators();
+                });
+            });
+
+            // Initial sort indicators
+            updateSortIndicators();
+        }
+
+        // Update sort indicators on headers
+        function updateSortIndicators() {
+            const headers = document.querySelectorAll('thead th[data-sort]');
+            headers.forEach(header => {
+                const indicator = header.querySelector('.sort-indicator');
+                const sortColumn = header.getAttribute('data-sort');
+
+                if (sortColumn === currentSortColumn) {
+                    indicator.textContent = currentSortDirection === 'desc' ? '▼' : '▲';
+                } else {
+                    indicator.textContent = '';
+                }
+            });
+        }
+
+        // Sort table data
+        function sortTableData(data) {
+            if (!currentSortColumn || data.length === 0) return data;
+
+            return [...data].sort((a, b) => {
+                let valA, valB;
+
+                if (currentSortColumn === 'no') {
+                    valA = a.no || 0;
+                    valB = b.no || 0;
+                } else if (currentSortColumn === 'name') {
+                    valA = (a.provinsi || a.kabupaten || a.kecamatan || a.desa || '').toLowerCase();
+                    valB = (b.provinsi || b.kabupaten || b.kecamatan || b.desa || '').toLowerCase();
+                    // String comparison
+                    if (currentSortDirection === 'asc') {
+                        return valA.localeCompare(valB);
+                    } else {
+                        return valB.localeCompare(valA);
+                    }
+                } else if (currentSortColumn === 'jumlahDesa') {
+                    valA = a.jumlahDesa || 0;
+                    valB = b.jumlahDesa || 0;
+                } else if (currentSortColumn === 'pemetaanMasuk') {
+                    valA = a.pemetaanMasuk || 0;
+                    valB = b.pemetaanMasuk || 0;
+                } else if (currentSortColumn === 'persenPemetaan') {
+                    valA = typeof a.persenPemetaan === 'number' ? a.persenPemetaan : parseFloat(a.persenPemetaan) || 0;
+                    valB = typeof b.persenPemetaan === 'number' ? b.persenPemetaan : parseFloat(b.persenPemetaan) || 0;
+                } else if (currentSortColumn === 'persenPembangunan') {
+                    valA = typeof a.persenPembangunan === 'number' ? a.persenPembangunan : parseFloat(a.persenPembangunan) || 0;
+                    valB = typeof b.persenPembangunan === 'number' ? b.persenPembangunan : parseFloat(b.persenPembangunan) || 0;
+                } else {
+                    return 0;
+                }
+
+                // Numeric comparison
+                if (currentSortDirection === 'asc') {
+                    return valA - valB;
+                } else {
+                    return valB - valA;
+                }
+            });
+        }
+
+        // Render table body with current data and sort
+        function renderTableBody() {
+            const tableBody = document.getElementById('stats-table-body');
+
+            if (currentTableData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                            Tidak ada data untuk ditampilkan
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const sortedData = sortTableData(currentTableData);
+
+            // Determine if rows should be clickable (not at desa level)
+            const isClickable = currentTableLevel !== 'Desa';
+
+            tableBody.innerHTML = sortedData.map((item, index) => {
+                const name = item.provinsi || item.kabupaten || item.kecamatan || item.desa || '-';
+                const persenPemetaan = typeof item.persenPemetaan === 'number' ? item.persenPemetaan : parseFloat(item.persenPemetaan) || 0;
+                const persenPembangunan = typeof item.persenPembangunan === 'number' ? item.persenPembangunan : parseFloat(item.persenPembangunan) || 0;
+
+                // Build data attributes for drill-down
+                const dataAttrs = isClickable ? `data-name="${name}" data-level="${currentTableLevel}"` : '';
+                const clickableClass = isClickable ? 'cursor-pointer hover:bg-blue-100' : 'hover:bg-blue-50';
+                const clickHint = isClickable ? `title="Klik untuk melihat detail ${name}"` : '';
+
+                return `
+                    <tr class="border-b border-gray-100 ${clickableClass} transition" ${dataAttrs} ${clickHint}>
+                        <td class="px-4 py-2 text-sm text-center">${index + 1}</td>
+                        <td class="px-4 py-2 text-sm font-medium">
+                            ${isClickable ? `<span class="text-blue-600 hover:underline">${name}</span>` : name}
+                        </td>
+                        <td class="px-4 py-2 text-sm text-center">${(item.jumlahDesa || 0).toLocaleString()}</td>
+                        <td class="px-4 py-2 text-sm text-center font-medium">${(item.pemetaanMasuk || 0).toLocaleString()}</td>
+                        <td class="px-4 py-2 text-sm text-center">
+                            <span class="px-2 py-1 rounded-full text-xs font-medium ${persenPemetaan >= 75 ? 'bg-green-100 text-green-700' :
+                        persenPemetaan >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                            persenPemetaan >= 25 ? 'bg-orange-100 text-orange-700' :
+                                'bg-gray-100 text-gray-700'
+                    }">${persenPemetaan.toFixed(1)}%</span>
+                        </td>
+                        <td class="px-4 py-2 text-sm text-center">
+                            <span class="px-2 py-1 rounded-full text-xs font-medium ${persenPembangunan >= 75 ? 'bg-green-100 text-green-700' :
+                        persenPembangunan >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                            persenPembangunan >= 25 ? 'bg-orange-100 text-orange-700' :
+                                'bg-gray-100 text-gray-700'
+                    }">${persenPembangunan.toFixed(1)}%</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Attach click event listeners for drill-down
+            if (isClickable) {
+                attachDrillDownListeners();
+            }
+        }
+
+        // Attach drill-down click listeners to table rows
+        function attachDrillDownListeners() {
+            const rows = document.querySelectorAll('#stats-table-body tr[data-name]');
+            rows.forEach(row => {
+                row.addEventListener('click', async function () {
+                    const name = this.getAttribute('data-name');
+                    const level = this.getAttribute('data-level');
+                    await drillDownToRegion(name, level);
+                });
+            });
+        }
+        // Show loading state in table
+        function showTableLoading(message = 'Memuat data...') {
+            const tableBody = document.getElementById('stats-table-body');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="spinner-sm"></div>
+                            <span>${message}</span>
                         </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Handle drill-down navigation
+        async function drillDownToRegion(name, fromLevel) {
+            console.log(`Drilling down from ${fromLevel}: ${name}`);
+
+            // Save current state to navigation history before drilling down
+            navigationHistory.push({
+                level: fromLevel,
+                provinsi: filterProvinsi.value,
+                kabupaten: filterKabupaten.value,
+                kecamatan: filterKecamatan.value,
+                desa: filterDesa.value
+            });
+
+            // Update back button visibility and text
+            updateBackButton();
+
+            // Show loading state immediately
+            showTableLoading(`Memuat data ${name}...`);
+
+            if (fromLevel === 'Provinsi') {
+                // Find and select the province in the dropdown
+                const option = Array.from(filterProvinsi.options).find(opt => opt.text === name);
+                if (option) {
+                    filterProvinsi.value = option.value;
+                    // Load kabupaten for this province
+                    await loadKabupaten(option.value);
+                    // Trigger the filter update
+                    await loadMarkers();
+                }
+            } else if (fromLevel === 'Kabupaten/Kota') {
+                // Find and select the kabupaten in the dropdown
+                const option = Array.from(filterKabupaten.options).find(opt => opt.text === name);
+                if (option) {
+                    filterKabupaten.value = option.value;
+                    // Load kecamatan for this kabupaten
+                    await loadKecamatan(option.value);
+                    // Trigger the filter update
+                    await loadMarkers();
+                }
+            } else if (fromLevel === 'Kecamatan') {
+                // Find and select the kecamatan in the dropdown
+                const option = Array.from(filterKecamatan.options).find(opt => opt.text === name);
+                if (option) {
+                    filterKecamatan.value = option.value;
+                    // Load desa for this kecamatan
+                    await loadDesa(option.value);
+                    // Trigger the filter update
+                    await loadMarkers();
+                }
+            }
+        }
+
+        // Navigate back one level in the table hierarchy
+        async function navigateBack() {
+            if (navigationHistory.length === 0) return;
+
+            const previousState = navigationHistory.pop();
+            console.log('Navigating back to:', previousState);
+
+            // Show loading state
+            showTableLoading('Memuat data...');
+
+            // Restore filter states based on the level we're going back to
+            if (previousState.level === 'Provinsi') {
+                // Going back to Provinsi level - reset all
+                filterProvinsi.value = '';
+                resetDropdown(filterKabupaten, 'Pilih Provinsi dulu');
+                resetDropdown(filterKecamatan, 'Pilih Kabupaten dulu');
+                resetDropdown(filterDesa, 'Pilih Kecamatan dulu');
+            } else if (previousState.level === 'Kabupaten/Kota') {
+                // Going back to Kabupaten level - keep provinsi, reset rest
+                filterProvinsi.value = previousState.provinsi;
+                filterKabupaten.value = '';
+                resetDropdown(filterKecamatan, 'Pilih Kabupaten dulu');
+                resetDropdown(filterDesa, 'Pilih Kecamatan dulu');
+                // Reload kabupaten list
+                if (previousState.provinsi) {
+                    await loadKabupaten(previousState.provinsi);
+                }
+            } else if (previousState.level === 'Kecamatan') {
+                // Going back to Kecamatan level - keep provinsi & kabupaten, reset rest
+                filterProvinsi.value = previousState.provinsi;
+                filterKabupaten.value = previousState.kabupaten;
+                filterKecamatan.value = '';
+                resetDropdown(filterDesa, 'Pilih Kecamatan dulu');
+                // Reload kabupaten and kecamatan lists
+                if (previousState.provinsi) {
+                    await loadKabupaten(previousState.provinsi);
+                    filterKabupaten.value = previousState.kabupaten;
+                }
+                if (previousState.kabupaten) {
+                    await loadKecamatan(previousState.kabupaten);
+                }
+            }
+
+            // Update back button visibility
+            updateBackButton();
+
+            // Reload markers with new filter state
+            await loadMarkers();
+        }
+
+        // Update back button visibility and text
+        function updateBackButton() {
+            const container = document.getElementById('table-back-button-container');
+            const buttonText = document.getElementById('btn-table-back-text');
+
+            if (navigationHistory.length > 0) {
+                container.classList.remove('hidden');
+                // Set appropriate text based on what we're going back to
+                const lastState = navigationHistory[navigationHistory.length - 1];
+                let backToText = 'Kembali ke Semua Provinsi';
+                if (lastState.level === 'Kabupaten/Kota') {
+                    const provName = filterProvinsi.options[filterProvinsi.selectedIndex]?.text || 'Provinsi';
+                    backToText = `Kembali ke ${provName}`;
+                } else if (lastState.level === 'Kecamatan') {
+                    const kabName = filterKabupaten.options[filterKabupaten.selectedIndex]?.text || 'Kabupaten';
+                    backToText = `Kembali ke ${kabName}`;
+                }
+                buttonText.textContent = backToText;
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        // Reset dropdown helper
+        function resetDropdown(select, placeholder) {
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+            select.disabled = true;
+        }
+
+        // Load provinces from API
+        async function loadProvinces() {
+            try {
+                const response = await fetch(`${API_BASE}/filters/provinsi`);
+                const data = await response.json();
+
+                filterProvinsi.innerHTML = '<option value="">Semua Provinsi</option>';
+                data.forEach(prov => {
+                    if (prov.id !== 0) { // Skip "Tidak Diketahui"
+                        filterProvinsi.innerHTML += `<option value="${prov.id}">${prov.nama}</option>`;
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading provinces:', error);
+                filterStatus.textContent = 'Error memuat provinsi';
+            }
+        }
+
+        // Load kabupaten based on provinsi
+        async function loadKabupaten(provinsiId) {
+            try {
+                filterKabupaten.innerHTML = '<option value="">Memuat...</option>';
+
+                const response = await fetch(`${API_BASE}/filters/kabupaten-kota?provinsi_ids[]=${provinsiId}`);
+                const data = await response.json();
+
+                filterKabupaten.innerHTML = '<option value="">Semua Kabupaten/Kota</option>';
+                data.forEach(kab => {
+                    filterKabupaten.innerHTML += `<option value="${kab.id}">${kab.nama}</option>`;
+                });
+                filterKabupaten.disabled = false;
+            } catch (error) {
+                console.error('Error loading kabupaten:', error);
+                filterKabupaten.innerHTML = '<option value="">Error memuat data</option>';
+            }
+        }
+
+        // Load kecamatan based on kabupaten
+        async function loadKecamatan(kabupatenId) {
+            try {
+                filterKecamatan.innerHTML = '<option value="">Memuat...</option>';
+
+                const response = await fetch(`${API_BASE}/filters/kecamatan?kabupaten_ids[]=${kabupatenId}`);
+                const data = await response.json();
+
+                filterKecamatan.innerHTML = '<option value="">Semua Kecamatan</option>';
+                data.forEach(kec => {
+                    filterKecamatan.innerHTML += `<option value="${kec.id}">${kec.nama}</option>`;
+                });
+                filterKecamatan.disabled = false;
+            } catch (error) {
+                console.error('Error loading kecamatan:', error);
+                filterKecamatan.innerHTML = '<option value="">Error memuat data</option>';
+            }
+        }
+
+        // Load desa based on kecamatan
+        async function loadDesa(kecamatanId) {
+            try {
+                filterDesa.innerHTML = '<option value="">Memuat...</option>';
+
+                const response = await fetch(`${API_BASE}/filters/desa?kecamatan_ids[]=${kecamatanId}`);
+                const data = await response.json();
+
+                filterDesa.innerHTML = '<option value="">Semua Desa/Kelurahan</option>';
+                data.forEach(desa => {
+                    filterDesa.innerHTML += `<option value="${desa.id}">${desa.nama}</option>`;
+                });
+                filterDesa.disabled = false;
+            } catch (error) {
+                console.error('Error loading desa:', error);
+                filterDesa.innerHTML = '<option value="">Error memuat data</option>';
+            }
+        }
+
+        // Load markers from API
+        async function loadMarkers() {
+            showLoading('Memuat data marker...');
+
+            try {
+                // Build query params with status filters from checkboxes
+                const params = new URLSearchParams({
+                    per_page: 1000,
+                    page: 1,
+                    include_rejected: 0,
+                    luas_dibawah_600: 0,
+                    is_start_development: filterMulaiBangun.checked ? 1 : 0,
+                    progress_100_percent: filterProgress100.checked ? 1 : 0,
+                    sort_column: 'id',
+                    sort_direction: 'desc'
+                });
+
+                // Add filters if selected - using location NAMES not IDs
+                if (filterProvinsi.value) {
+                    const provName = filterProvinsi.options[filterProvinsi.selectedIndex].text;
+                    params.append('provinsi[0]', provName);
+                }
+                if (filterKabupaten.value) {
+                    const kabName = filterKabupaten.options[filterKabupaten.selectedIndex].text;
+                    params.append('kabupaten_kota[0]', kabName);
+                }
+                if (filterKecamatan.value) {
+                    const kecName = filterKecamatan.options[filterKecamatan.selectedIndex].text;
+                    params.append('kecamatan[0]', kecName);
+                }
+                if (filterDesa.value) {
+                    const desaName = filterDesa.options[filterDesa.selectedIndex].text;
+                    params.append('desa_kelurahan[0]', desaName);
+                }
+
+                const response = await fetch(`${API_BASE}/map/markers?${params.toString()}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    allMarkersData = result.data;
+                    displayMarkersOnMap(allMarkersData);
+                    updateStats(allMarkersData);
+
+                    // Update status
+                    const filterText = getActiveFilterText();
+                    filterStatus.textContent = filterText ? `Filter: ${filterText}` : '';
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                console.error('Error loading markers:', error);
+                loadingText.textContent = 'Error memuat data. Coba refresh halaman.';
+
+                // Show error state but don't hide loading
+                setTimeout(() => {
+                    hideLoading();
+                    filterStatus.textContent = 'Error: Gagal memuat data dari API';
+                }, 2000);
+                return;
+            }
+
+            hideLoading();
+        }
+
+        // Get active filter text for display
+        function getActiveFilterText() {
+            const parts = [];
+            if (filterProvinsi.value) {
+                parts.push(filterProvinsi.options[filterProvinsi.selectedIndex].text);
+            }
+            if (filterKabupaten.value) {
+                parts.push(filterKabupaten.options[filterKabupaten.selectedIndex].text);
+            }
+            if (filterKecamatan.value) {
+                parts.push(filterKecamatan.options[filterKecamatan.selectedIndex].text);
+            }
+            if (filterDesa.value) {
+                parts.push(filterDesa.options[filterDesa.selectedIndex].text);
+            }
+
+            // Add status filters
+            const statusParts = [];
+            if (filterProgress100.checked) {
+                statusParts.push('🟢 100%');
+            }
+            if (filterMulaiBangun.checked) {
+                statusParts.push('🟡 Mulai Bangun');
+            }
+
+            let result = parts.join(' > ');
+            if (statusParts.length > 0) {
+                result += (result ? ' | ' : '') + statusParts.join(', ');
+            }
+            return result;
+        }
+
+        // Display markers on map
+        function displayMarkersOnMap(data) {
+            // Clear existing markers
+            markers.clearLayers();
+
+            // Add new markers
+            data.forEach(point => {
+                const lat = parseFloat(point.lat);
+                const lng = parseFloat(point.lng);
+
+                if (isNaN(lat) || isNaN(lng)) return;
+
+                const progress = parseFloat(point.percentage_development_progress) || 0;
+                const isStarted = point.isStartDevelopment;
+
+                // Determine color based on progress
+                let markerColor;
+                if (progress >= 100) {
+                    markerColor = '#22c55e'; // green-500
+                } else if (isStarted) {
+                    markerColor = '#eab308'; // yellow-500
+                } else {
+                    markerColor = '#9ca3af'; // gray-400
+                }
+
+                const icon = L.divIcon({
+                    html: `<svg xmlns="http://www.w3.org/2000/svg" class="marker-icon" viewBox="0 0 20 20" fill="${markerColor}"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>`,
+                    className: 'custom-div-icon',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                });
+
+                const marker = L.marker([lat, lng], { icon: icon });
+
+                // Initial loading popup
+                const loadingPopup = `
+                    <div style="padding: 12px; min-width: 250px; text-align: center;">
+                        <div style="display: inline-block; width: 20px; height: 20px; border: 2px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <p style="margin-top: 8px; color: #6b7280; font-size: 12px;">Memuat data...</p>
                     </div>
                 `;
 
-                marker.bindPopup(popupContent);
+                marker.bindPopup(loadingPopup);
+
+                // Fetch detail when popup opens
+                marker.on('popupopen', async function () {
+                    try {
+                        const response = await fetch(`${API_BASE}/map/marker/${point.id}`);
+                        const result = await response.json();
+
+                        if (result.success && result.data) {
+                            const detail = result.data;
+                            const detailProgress = parseFloat(detail.percentage_development_progress) || 0;
+                            const detailStarted = detail.isStartDevelopment;
+
+                            const detailStatusText = detailProgress >= 100 ? 'SELESAI' : (detailStarted ? 'DALAM PROSES' : 'BELUM MULAI');
+                            const detailStatusBg = detailProgress >= 100 ? '#dcfce7' : (detailStarted ? '#fef9c3' : '#f3f4f6');
+                            const detailStatusColor = detailProgress >= 100 ? '#15803d' : (detailStarted ? '#ca8a04' : '#6b7280');
+                            const detailMarkerColor = detailProgress >= 100 ? '#22c55e' : (detailStarted ? '#eab308' : '#9ca3af');
+
+                            const popupContent = `
+                                <div style="padding: 10px; min-width: 280px; max-width: 320px;">
+                                    <h3 style="font-weight: bold; color: #1d4ed8; font-size: 14px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 10px;">
+                                        ${detail.nama || 'ID: ' + detail.id}
+                                    </h3>
+                                    <table style="font-size: 12px; width: 100%;">
+                                        <tr><td style="font-weight: 600; padding: 4px 0; width: 90px; vertical-align: top;">Lokasi</td><td>: ${detail.lokasi || '-'}</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 4px 0; vertical-align: top;">Potensi</td><td>: ${detail.potensi || '-'}</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 4px 0;">Luas Lahan</td><td>: ${detail.luasLahan ? detail.luasLahan + ' m²' : '-'}</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 4px 0;">Status</td><td>: ${detail.statusPersetujuan || '-'}</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 4px 0;">Progress</td><td>: ${detailProgress.toFixed(2)}%</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 4px 0;">Koordinat</td><td>: ${parseFloat(detail.latitude).toFixed(4)}, ${parseFloat(detail.longitude).toFixed(4)}</td></tr>
+                                        ${detail.nama_kodim ? `<tr><td style="font-weight: 600; padding: 4px 0;">Kodim</td><td>: ${detail.nama_kodim}</td></tr>` : ''}
+                                    </table>
+                                    <div style="margin-top: 10px;">
+                                        <div style="background: #e5e7eb; border-radius: 4px; height: 8px; overflow: hidden;">
+                                            <div style="background: ${detailMarkerColor}; height: 100%; width: ${Math.min(detailProgress, 100)}%;"></div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="background: ${detailStatusBg}; color: ${detailStatusColor}; font-size: 10px; font-weight: bold; padding: 4px 10px; border-radius: 9999px;">
+                                            ${detailStatusText}
+                                        </span>
+                                        <span style="font-size: 10px; color: #9ca3af;">ID: ${detail.id}</span>
+                                    </div>
+                                    ${detail.catatan ? `<div style="margin-top: 10px; padding: 8px; background: #fef3c7; border-radius: 4px; font-size: 11px; color: #92400e;"><strong>Catatan:</strong> ${detail.catatan}</div>` : ''}
+                                    <div style="margin-top: 12px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
+                                        <a href="https://www.google.com/maps/dir/?api=1&destination=${parseFloat(detail.latitude)},${parseFloat(detail.longitude)}" 
+                                           target="_blank" 
+                                           style="display: flex; align-items: center; justify-content: center; gap: 6px; background: #4285f4; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                                            </svg>
+                                            Dapatkan Arah
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+
+                            marker.setPopupContent(popupContent);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching marker detail:', error);
+                        marker.setPopupContent(`
+                            <div style="padding: 12px; min-width: 200px; text-align: center; color: #dc2626;">
+                                <p>Gagal memuat data</p>
+                            </div>
+                        `);
+                    }
+                });
+
                 markers.addLayer(marker);
             });
 
-            map.addLayer(markers);
-
-            // Update stats
-            document.getElementById('total-points').innerText = warehouseData.length;
-            const provinces = new Set(warehouseData.map(p => p.prov));
-            document.getElementById('total-provinces').innerText = provinces.size;
-
-            // Fit bounds
-            if (warehouseData.length > 0) {
-                const group = new L.featureGroup(warehouseData.map(d => L.marker([d.lat, d.lng])));
+            // Fit bounds if there are markers
+            if (data.length > 0) {
+                const group = new L.featureGroup(data.map(d => L.marker([parseFloat(d.lat), parseFloat(d.lng)])));
                 map.fitBounds(group.getBounds().pad(0.1));
             }
 
-            // Force map to recalculate size
-            setTimeout(function () {
-                map.invalidateSize();
-            }, 100);
+            // Recalculate map size
+            setTimeout(() => map.invalidateSize(), 100);
+        }
+
+        // Update statistics
+        function updateStats(data) {
+            document.getElementById('total-points').textContent = data.length.toLocaleString();
+
+            const started = data.filter(d => d.isStartDevelopment).length;
+            document.getElementById('total-started').textContent = started.toLocaleString();
+
+            const complete = data.filter(d => parseFloat(d.percentage_development_progress) >= 100).length;
+            document.getElementById('total-complete').textContent = complete.toLocaleString();
+
+            // Update data source timestamp
+            document.getElementById('data-source').textContent = `Data diambil: ${new Date().toLocaleString('id-ID')}`;
+
+            // Update province statistics table
+            updateProvinceStatsTable();
+        }
+
+        // Inertia.js version - may change, obtain from page source if needed
+        const INERTIA_VERSION = 'c94112b8ce5d69ee1248d6dc87e2dba6';
+        const DASHBOARD_BASE = 'https://pemetaan-lahan.portalkdkmp.id';
+
+        // Fetch data using Inertia.js approach (dashboard-lahan endpoint)
+        async function fetchDashboardDataInertia() {
+            const params = new URLSearchParams({
+                per_page: 100,
+                page: 1,
+                include_rejected: 0,
+                luas_dibawah_600: 0,
+                is_start_development: filterMulaiBangun.checked ? 1 : 0,
+                progress_100_percent: filterProgress100.checked ? 1 : 0,
+                sort_column: 'id',
+                sort_direction: 'desc'
+            });
+
+            // Add location filters using names
+            if (filterProvinsi.value) {
+                const provName = filterProvinsi.options[filterProvinsi.selectedIndex].text;
+                params.append('provinsi[]', provName);
+            }
+            if (filterKabupaten.value) {
+                const kabName = filterKabupaten.options[filterKabupaten.selectedIndex].text;
+                params.append('kabupaten_kota[]', kabName);
+            }
+            if (filterKecamatan.value) {
+                const kecName = filterKecamatan.options[filterKecamatan.selectedIndex].text;
+                params.append('kecamatan[]', kecName);
+            }
+            if (filterDesa.value) {
+                const desaName = filterDesa.options[filterDesa.selectedIndex].text;
+                params.append('desa_kelurahan[]', desaName);
+            }
+
+            const url = `${DASHBOARD_BASE}/dashboard-lahan?${params.toString()}`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'X-Inertia': 'true',
+                        'X-Inertia-Version': INERTIA_VERSION,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Inertia Dashboard Data:', data);
+                return data.props || null;
+            } catch (error) {
+                console.error('Error fetching Inertia data:', error);
+                // CORS likely blocked - return null to fallback to regular API
+                return null;
+            }
+        }
+
+        // Update province statistics table from dashboard API
+        async function updateProvinceStatsTable() {
+            const tableBody = document.getElementById('stats-table-body');
+            const tableFooter = document.getElementById('stats-table-footer');
+            const tableTitle = document.getElementById('stats-table-title');
+            const colName = document.getElementById('stats-col-name');
+
+            // Show loading state in table
+            showTableLoading('Memuat data statistik...');
+
+            try {
+                // Try Inertia approach first
+                let inertiaData = null;
+                try {
+                    inertiaData = await fetchDashboardDataInertia();
+                } catch (e) {
+                    console.log('Inertia fetch failed, falling back to API:', e);
+                }
+
+                let levelData = [];
+                let totals = {};
+                let currentLevel = 'provinsi';
+                let tableTitleText = 'Rekap Data Per Provinsi';
+                let colNameText = 'Provinsi';
+
+                if (inertiaData) {
+                    // Use Inertia data
+                    console.log('Using Inertia data source');
+                    currentLevel = inertiaData.currentLevel || 'provinsi';
+
+                    // Use levelData if available (shows data based on filter level)
+                    if (inertiaData.levelData && inertiaData.levelData.length > 0) {
+                        levelData = inertiaData.levelData;
+                    } else if (inertiaData.provinsiData) {
+                        levelData = inertiaData.provinsiData;
+                    }
+
+                    // Set titles based on current level
+                    if (currentLevel === 'desa') {
+                        tableTitleText = 'Rekap Data Per Desa';
+                        colNameText = 'Desa';
+                    } else if (currentLevel === 'kecamatan') {
+                        tableTitleText = 'Rekap Data Per Kecamatan';
+                        colNameText = 'Kecamatan';
+                    } else if (currentLevel === 'kabupaten') {
+                        tableTitleText = 'Rekap Data Per Kabupaten/Kota';
+                        colNameText = 'Kabupaten/Kota';
+                    }
+
+                    // Set totals from Inertia data
+                    if (inertiaData.totalKeseluruhan) {
+                        totals = {
+                            totalDesa: inertiaData.totalKeseluruhan.jumlahDesa,
+                            totalPemetaan: inertiaData.totalKeseluruhan.pemetaanMasuk,
+                            persenTotal: inertiaData.totalKeseluruhan.persenPemetaan
+                        };
+                    }
+                } else {
+                    // Fallback to regular API
+                    console.log('Using fallback API');
+                    const params = new URLSearchParams({
+                        per_page: 100,
+                        page: 1,
+                        include_rejected: 0,
+                        luas_dibawah_600: 0,
+                        is_start_development: filterMulaiBangun.checked ? 1 : 0,
+                        progress_100_percent: filterProgress100.checked ? 1 : 0,
+                        sort_column: 'id',
+                        sort_direction: 'desc'
+                    });
+
+                    if (filterProvinsi.value) {
+                        const provName = filterProvinsi.options[filterProvinsi.selectedIndex].text;
+                        params.append('provinsi[]', provName);
+                    }
+                    if (filterKabupaten.value) {
+                        const kabName = filterKabupaten.options[filterKabupaten.selectedIndex].text;
+                        params.append('kabupaten_kota[]', kabName);
+                    }
+                    if (filterKecamatan.value) {
+                        const kecName = filterKecamatan.options[filterKecamatan.selectedIndex].text;
+                        params.append('kecamatan[]', kecName);
+                    }
+
+                    const apiEndpoint = `${API_BASE}/dashboard/province-statistics`;
+                    const response = await fetch(`${apiEndpoint}?${params.toString()}`);
+                    const result = await response.json();
+
+                    if (result.stats && result.stats.provinsiData) {
+                        levelData = result.stats.provinsiData;
+                        totals = result.stats.totals || {};
+                    }
+                }
+
+                // Save data for CSV export
+                currentTableData = levelData;
+                currentTableLevel = colNameText;
+
+                // Update table title
+                tableTitle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                    </svg>
+                    ${tableTitleText}
+                `;
+
+                // Update column name header (preserve sort indicator)
+                const colNameSpan = colName.querySelector('span');
+                if (colNameSpan) {
+                    const indicator = colName.querySelector('.sort-indicator');
+                    colNameSpan.innerHTML = `${colNameText} <span class="sort-indicator text-blue-500">${indicator ? indicator.textContent : ''}</span>`;
+                }
+
+                // Render table with sorting applied
+                renderTableBody();
+                updateSortIndicators();
+
+                // Generate footer totals
+                tableFooter.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="px-4 py-3 text-sm font-bold">Total Keseluruhan</td>
+                        <td class="px-4 py-3 text-sm text-center font-bold">${(totals.totalDesa || 0).toLocaleString()}</td>
+                        <td class="px-4 py-3 text-sm text-center font-bold">${(totals.totalPemetaan || 0).toLocaleString()}</td>
+                        <td class="px-4 py-3 text-sm text-center font-bold">${totals.persenTotal || '0%'}</td>
+                        <td class="px-4 py-3 text-sm text-center font-bold">-</td>
+                    </tr>
+                `;
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                            Gagal memuat data statistik
+                        </td>
+                    </tr>
+                `;
+                tableFooter.innerHTML = '';
+            }
+        }
+
+        // Download table as CSV
+        function downloadTableAsCSV() {
+            if (currentTableData.length === 0) {
+                alert('Tidak ada data untuk diunduh');
+                return;
+            }
+
+            // Create CSV header
+            const headers = ['No', currentTableLevel, 'Jumlah Desa', 'Lahan Terdaftar', '% Pemetaan', '% Pembangunan'];
+
+            // Create CSV rows
+            const rows = currentTableData.map((item, index) => {
+                const name = item.provinsi || item.kabupaten || item.kecamatan || item.desa || '-';
+                const persenPemetaan = typeof item.persenPemetaan === 'number' ? item.persenPemetaan : parseFloat(item.persenPemetaan) || 0;
+                const persenPembangunan = typeof item.persenPembangunan === 'number' ? item.persenPembangunan : parseFloat(item.persenPembangunan) || 0;
+
+                return [
+                    item.no || index + 1,
+                    `"${name.replace(/"/g, '""')}"`, // Escape quotes in CSV
+                    item.jumlahDesa || 0,
+                    item.pemetaanMasuk || 0,
+                    persenPemetaan.toFixed(2),
+                    persenPembangunan.toFixed(2)
+                ].join(',');
+            });
+
+            // Combine headers and rows
+            const csvContent = [headers.join(','), ...rows].join('\n');
+
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const filename = `rekap_data_${currentTableLevel.toLowerCase().replace(/\//g, '_')}_${timestamp}.csv`;
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Loading helpers
+        function showLoading(text) {
+            loadingText.textContent = text || 'Memuat data...';
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
         }
     </script>
 </body>
