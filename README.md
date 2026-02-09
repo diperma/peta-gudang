@@ -15,7 +15,7 @@ Visualisasi interaktif sebaran lokasi pembangunan gudang di seluruh Indonesia.
 - TailwindCSS untuk styling
 
 ## Demo
-Kunjungi: https://[username].github.io/peta-gudang/
+Kunjungi: https://diperma.github.io/peta-gudang/
 
 ## Lisensi
 MIT
