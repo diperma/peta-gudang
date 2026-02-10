@@ -1080,14 +1080,59 @@
             updateProvinceStatsTable();
         }
 
-        // Inertia.js version - may change, obtain from page source if needed
-        const INERTIA_VERSION = 'c94112b8ce5d69ee1248d6dc87e2dba6';
+        // Cache for inertia version
+        let cachedInertiaVersion = null;
         const DASHBOARD_BASE = 'https://pemetaan-lahan.portalkdkmp.id';
+
+        // Helper to get Inertia version dynamically from homepage
+        async function getInertiaVersion() {
+            if (cachedInertiaVersion) return cachedInertiaVersion;
+
+            try {
+                // Fetch the dashboard page to get the current asset version from data-page
+                // We fetch the dashboard URL specifically because the root might redirect
+                const response = await fetch(`${DASHBOARD_BASE}/dashboard-lahan`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'text/html' }
+                });
+
+                // If CORS blocks this, we'll catch the error below
+                const html = await response.text();
+
+                // Parse the HTML to find the data-page attribute logic
+                // We use a regex to be faster/robust than full DOM parsing if possible, 
+                // but DOMParser is safer for HTML entities.
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const appDiv = doc.getElementById('app');
+
+                if (appDiv && appDiv.hasAttribute('data-page')) {
+                    const pageData = JSON.parse(appDiv.getAttribute('data-page'));
+                    if (pageData && pageData.version) {
+                        console.log('Fetched Inertia Version:', pageData.version);
+                        cachedInertiaVersion = pageData.version;
+                        return pageData.version;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch Inertia version:', error);
+            }
+
+            return null;
+        }
 
         // Fetch data using Inertia.js approach (dashboard-lahan endpoint)
         async function fetchDashboardDataInertia() {
+            // Get version dynamically
+            const version = await getInertiaVersion();
+
+            if (!version) {
+                console.warn('Could not determine Inertia version, skipping Inertia fetch');
+                return null;
+            }
+
             const params = new URLSearchParams({
-                per_page: 100,
+                per_page: 25,
                 page: 1,
                 include_rejected: 0,
                 luas_dibawah_600: 0,
@@ -1106,10 +1151,11 @@
                 const kabName = filterKabupaten.options[filterKabupaten.selectedIndex].text;
                 params.append('kabupaten_kota[]', kabName);
             }
-            if (filterKecamatan.value) {
+            if (filterKecamatan.value) { // Note: original code only had up to kecamatan in some parts, checking context
                 const kecName = filterKecamatan.options[filterKecamatan.selectedIndex].text;
                 params.append('kecamatan[]', kecName);
             }
+            // Check if desa filter exists in scope (it does based on previous view_file line 1113)
             if (filterDesa.value) {
                 const desaName = filterDesa.options[filterDesa.selectedIndex].text;
                 params.append('desa_kelurahan[]', desaName);
@@ -1121,10 +1167,17 @@
                 const response = await fetch(url, {
                     headers: {
                         'X-Inertia': 'true',
-                        'X-Inertia-Version': INERTIA_VERSION,
+                        'X-Inertia-Version': version,
                         'Accept': 'application/json'
                     }
                 });
+
+                if (response.status === 409) {
+                    console.warn('Inertia version mismatch (409) despite fresh fetch. Clearing cache.');
+                    cachedInertiaVersion = null;
+                    // Optional: retry once? For now just return null to fallback.
+                    return null;
+                }
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
@@ -1135,10 +1188,11 @@
                 return data.props || null;
             } catch (error) {
                 console.error('Error fetching Inertia data:', error);
-                // CORS likely blocked - return null to fallback to regular API
+                // CORS likely blocked or other net error - return null to fallback to regular API
                 return null;
             }
         }
+
 
         // Update province statistics table from dashboard API
         async function updateProvinceStatsTable() {
