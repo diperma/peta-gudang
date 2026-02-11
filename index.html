@@ -1292,6 +1292,24 @@
                 currentTableData = levelData;
                 currentTableLevel = colNameText;
 
+                // Calculate totals from current level data (Client-side)
+                let calcTotalDesa = 0;
+                let calcTotalPemetaan = 0;
+
+                if (levelData && levelData.length > 0) {
+                    levelData.forEach(item => {
+                        calcTotalDesa += parseInt(item.jumlahDesa || 0);
+                        calcTotalPemetaan += parseInt(item.pemetaanMasuk || 0);
+                    });
+                }
+
+                // Update totals object for footer
+                totals = {
+                    totalDesa: calcTotalDesa,
+                    totalPemetaan: calcTotalPemetaan,
+                    persenTotal: calcTotalDesa > 0 ? ((calcTotalPemetaan / calcTotalDesa) * 100).toFixed(2) + '%' : '0%'
+                };
+
                 // Update table title
                 tableTitle.innerHTML = `
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
