@@ -638,8 +638,6 @@
 
         // Handle drill-down navigation
         async function drillDownToRegion(name, fromLevel) {
-            console.log(`Drilling down from ${fromLevel}: ${name}`);
-
             // Save current state to navigation history before drilling down
             navigationHistory.push({
                 level: fromLevel,
@@ -693,7 +691,6 @@
             if (navigationHistory.length === 0) return;
 
             const previousState = navigationHistory.pop();
-            console.log('Navigating back to:', previousState);
 
             // Show loading state
             showTableLoading('Memuat data...');
@@ -1109,7 +1106,6 @@
                 if (appDiv && appDiv.hasAttribute('data-page')) {
                     const pageData = JSON.parse(appDiv.getAttribute('data-page'));
                     if (pageData && pageData.version) {
-                        console.log('Fetched Inertia Version:', pageData.version);
                         cachedInertiaVersion = pageData.version;
                         return pageData.version;
                     }
@@ -1121,13 +1117,13 @@
             return null;
         }
 
+
         // Fetch data using Inertia.js approach (dashboard-lahan endpoint)
         async function fetchDashboardDataInertia() {
             // Get version dynamically
             const version = await getInertiaVersion();
 
             if (!version) {
-                console.warn('Could not determine Inertia version, skipping Inertia fetch');
                 return null;
             }
 
@@ -1173,7 +1169,6 @@
                 });
 
                 if (response.status === 409) {
-                    console.warn('Inertia version mismatch (409) despite fresh fetch. Clearing cache.');
                     cachedInertiaVersion = null;
                     // Optional: retry once? For now just return null to fallback.
                     return null;
@@ -1184,10 +1179,8 @@
                 }
 
                 const data = await response.json();
-                console.log('Inertia Dashboard Data:', data);
                 return data.props || null;
             } catch (error) {
-                console.error('Error fetching Inertia data:', error);
                 // CORS likely blocked or other net error - return null to fallback to regular API
                 return null;
             }
@@ -1210,7 +1203,7 @@
                 try {
                     inertiaData = await fetchDashboardDataInertia();
                 } catch (e) {
-                    console.log('Inertia fetch failed, falling back to API:', e);
+                    // Silent fallback
                 }
 
                 let levelData = [];
@@ -1221,7 +1214,6 @@
 
                 if (inertiaData) {
                     // Use Inertia data
-                    console.log('Using Inertia data source');
                     currentLevel = inertiaData.currentLevel || 'provinsi';
 
                     // Use levelData if available (shows data based on filter level)
@@ -1253,7 +1245,6 @@
                     }
                 } else {
                     // Fallback to regular API
-                    console.log('Using fallback API');
                     const params = new URLSearchParams({
                         per_page: 100,
                         page: 1,
