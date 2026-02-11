@@ -1309,7 +1309,7 @@
                         const countPemetaan = parseInt(valPemetaan || 0);
 
                         // Debug first few rows
-                        if (index < 5) console.log(`Row ${index}: ${item.nama || item.kecamatan} - Desa: ${item.jumlahDesa}=>${countDesa}, Peta: ${item.pemetaanMasuk}=>${countPemetaan}`);
+                        if (index < 5) console.log(`Row ${index}: ${item.nama || item.kecamatan || item.kabupaten} - Desa: ${item.jumlahDesa}=>${countDesa}, Peta: ${item.pemetaanMasuk}=>${countPemetaan}`);
 
                         calcTotalDesa += countDesa;
                         calcTotalPemetaan += countPemetaan;
@@ -1317,8 +1317,8 @@
                 }
                 console.log('Final Calc:', calcTotalDesa, calcTotalPemetaan);
 
-                // Update totals object for footer
-                totals = {
+                // Update totals object for footer (Use a new variable to ensure no conflict)
+                const displayedTotals = {
                     totalDesa: calcTotalDesa,
                     totalPemetaan: calcTotalPemetaan,
                     persenTotal: calcTotalDesa > 0 ? ((calcTotalPemetaan / calcTotalDesa) * 100).toFixed(2) + '%' : '0%'
@@ -1344,17 +1344,13 @@
                 renderTableBody();
                 updateSortIndicators();
 
-                // Generate footer totals (WITH DEBUG INFO HIDDEN IN CONSOLE, CLEAN DISPLAY)
-                // Wait, user asked to fix it. I will output clean footer.
-                // The logs will help me if I need to guide the user to check console.
-                // But if I want to see it in the UI, I'll add a small debug attribute.
-
+                // Generate footer totals using displayedTotals
                 tableFooter.innerHTML = `
                     <tr title="Debug: Desa=${calcTotalDesa}, Peta=${calcTotalPemetaan}">
                         <td colspan="2" class="px-4 py-3 text-sm font-bold">Total Keseluruhan</td>
-                        <td class="px-4 py-3 text-sm text-center font-bold">${(totals.totalDesa || 0).toLocaleString()}</td>
-                        <td class="px-4 py-3 text-sm text-center font-bold">${(totals.totalPemetaan || 0).toLocaleString()}</td>
-                        <td class="px-4 py-3 text-sm text-center font-bold">${totals.persenTotal || '0%'}</td>
+                        <td class="px-4 py-3 text-sm text-center font-bold">${(displayedTotals.totalDesa || 0).toLocaleString()}</td>
+                        <td class="px-4 py-3 text-sm text-center font-bold">${(displayedTotals.totalPemetaan || 0).toLocaleString()}</td>
+                        <td class="px-4 py-3 text-sm text-center font-bold">${displayedTotals.persenTotal || '0%'}</td>
                         <td class="px-4 py-3 text-sm text-center font-bold">-</td>
                     </tr>
                 `;
