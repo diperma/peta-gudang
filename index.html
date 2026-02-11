@@ -1296,12 +1296,26 @@
                 let calcTotalDesa = 0;
                 let calcTotalPemetaan = 0;
 
+                console.log('--- DEBUG STATS CALCULATION ---');
+                console.log('levelData length:', levelData ? levelData.length : 0);
+
                 if (levelData && levelData.length > 0) {
-                    levelData.forEach(item => {
-                        calcTotalDesa += parseInt(item.jumlahDesa || 0);
-                        calcTotalPemetaan += parseInt(item.pemetaanMasuk || 0);
+                    levelData.forEach((item, index) => {
+                        // Ensure we are parsing strictly integers
+                        const valDesa = String(item.jumlahDesa || 0).replace(/[^0-9]/g, '');
+                        const valPemetaan = String(item.pemetaanMasuk || 0).replace(/[^0-9]/g, '');
+
+                        const countDesa = parseInt(valDesa || 0);
+                        const countPemetaan = parseInt(valPemetaan || 0);
+
+                        // Debug first few rows
+                        if (index < 5) console.log(`Row ${index}: ${item.nama || item.kecamatan} - Desa: ${item.jumlahDesa}=>${countDesa}, Peta: ${item.pemetaanMasuk}=>${countPemetaan}`);
+
+                        calcTotalDesa += countDesa;
+                        calcTotalPemetaan += countPemetaan;
                     });
                 }
+                console.log('Final Calc:', calcTotalDesa, calcTotalPemetaan);
 
                 // Update totals object for footer
                 totals = {
@@ -1330,9 +1344,13 @@
                 renderTableBody();
                 updateSortIndicators();
 
-                // Generate footer totals
+                // Generate footer totals (WITH DEBUG INFO HIDDEN IN CONSOLE, CLEAN DISPLAY)
+                // Wait, user asked to fix it. I will output clean footer.
+                // The logs will help me if I need to guide the user to check console.
+                // But if I want to see it in the UI, I'll add a small debug attribute.
+
                 tableFooter.innerHTML = `
-                    <tr>
+                    <tr title="Debug: Desa=${calcTotalDesa}, Peta=${calcTotalPemetaan}">
                         <td colspan="2" class="px-4 py-3 text-sm font-bold">Total Keseluruhan</td>
                         <td class="px-4 py-3 text-sm text-center font-bold">${(totals.totalDesa || 0).toLocaleString()}</td>
                         <td class="px-4 py-3 text-sm text-center font-bold">${(totals.totalPemetaan || 0).toLocaleString()}</td>
