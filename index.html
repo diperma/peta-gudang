@@ -1077,7 +1077,114 @@
             updateProvinceStatsTable();
         }
 
+        // Cache for inertia version
+        let cachedInertiaVersion = null;
+        const DASHBOARD_BASE = 'https://pemetaan-lahan.portalkdkmp.id';
 
+        // Helper to get Inertia version dynamically from homepage
+        async function getInertiaVersion() {
+            if (cachedInertiaVersion) return cachedInertiaVersion;
+
+            try {
+                // Fetch the dashboard page to get the current asset version from data-page
+                // We fetch the dashboard URL specifically because the root might redirect
+                const response = await fetch(`${DASHBOARD_BASE}/dashboard-lahan`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'text/html' }
+                });
+
+                // If CORS blocks this, we'll catch the error below
+                const html = await response.text();
+
+                // Parse the HTML to find the data-page attribute logic
+                // We use a regex to be faster/robust than full DOM parsing if possible, 
+                // but DOMParser is safer for HTML entities.
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const appDiv = doc.getElementById('app');
+
+                if (appDiv && appDiv.hasAttribute('data-page')) {
+                    const pageData = JSON.parse(appDiv.getAttribute('data-page'));
+                    if (pageData && pageData.version) {
+                        cachedInertiaVersion = pageData.version;
+                        return pageData.version;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch Inertia version:', error);
+            }
+
+            return null;
+        }
+
+
+        // Fetch data using Inertia.js approach (dashboard-lahan endpoint)
+        async function fetchDashboardDataInertia() {
+            // Get version dynamically
+            const version = await getInertiaVersion();
+
+            if (!version) {
+                return null;
+            }
+
+            const params = new URLSearchParams({
+                per_page: 25,
+                page: 1,
+                include_rejected: 0,
+                luas_dibawah_600: 0,
+                is_start_development: filterMulaiBangun.checked ? 1 : 0,
+                progress_100_percent: filterProgress100.checked ? 1 : 0,
+                sort_column: 'id',
+                sort_direction: 'desc'
+            });
+
+            // Add location filters using names
+            if (filterProvinsi.value) {
+                const provName = filterProvinsi.options[filterProvinsi.selectedIndex].text;
+                params.append('provinsi[]', provName);
+            }
+            if (filterKabupaten.value) {
+                const kabName = filterKabupaten.options[filterKabupaten.selectedIndex].text;
+                params.append('kabupaten_kota[]', kabName);
+            }
+            if (filterKecamatan.value) { // Note: original code only had up to kecamatan in some parts, checking context
+                const kecName = filterKecamatan.options[filterKecamatan.selectedIndex].text;
+                params.append('kecamatan[]', kecName);
+            }
+            // Check if desa filter exists in scope (it does based on previous view_file line 1113)
+            if (filterDesa.value) {
+                const desaName = filterDesa.options[filterDesa.selectedIndex].text;
+                params.append('desa_kelurahan[]', desaName);
+            }
+
+            const url = `${DASHBOARD_BASE}/dashboard-lahan?${params.toString()}`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'X-Inertia': 'true',
+                        'X-Inertia-Version': version,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.status === 409) {
+                    cachedInertiaVersion = null;
+                    // Optional: retry once? For now just return null to fallback.
+                    return null;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.props || null;
+            } catch (error) {
+                // CORS likely blocked or other net error - return null to fallback to regular API
+                return null;
+            }
+        }
 
 
         // Update province statistics table from dashboard API
@@ -1090,59 +1197,86 @@
             // Show loading state in table
             showTableLoading('Memuat data statistik...');
 
-            let levelData = [];
-            // let totals = {}; // Not used as we calculate client-side
-            let tableTitleText = 'Rekap Data Per Provinsi';
-            let colNameText = 'Provinsi';
-
             try {
-                // Determine current level based on filters for title
-                if (filterDesa.value) {
-                    tableTitleText = 'Rekap Data Per Desa';
-                    colNameText = 'Desa';
-                } else if (filterKecamatan.value) {
-                    tableTitleText = 'Rekap Data Per Desa'; // If Kecamatan selected, we typically show Desa list
-                    colNameText = 'Desa';
-                } else if (filterKabupaten.value) {
-                    tableTitleText = 'Rekap Data Per Kecamatan'; // If Kabupaten selected, show Kecamatan list
-                    colNameText = 'Kecamatan';
-                } else if (filterProvinsi.value) {
-                    tableTitleText = 'Rekap Data Per Kabupaten/Kota'; // If Provinsi selected, show Kabupaten list
-                    colNameText = 'Kabupaten/Kota';
+                // Try Inertia approach first
+                let inertiaData = null;
+                try {
+                    inertiaData = await fetchDashboardDataInertia();
+                } catch (e) {
+                    // Silent fallback
                 }
 
-                // Prepare params for fallback API
-                const params = new URLSearchParams({
-                    per_page: 100,
-                    page: 1,
-                    include_rejected: 0,
-                    luas_dibawah_600: 0,
-                    is_start_development: filterMulaiBangun.checked ? 1 : 0,
-                    progress_100_percent: filterProgress100.checked ? 1 : 0,
-                    sort_column: 'id',
-                    sort_direction: 'desc'
-                });
+                let levelData = [];
+                let totals = {};
+                let currentLevel = 'provinsi';
+                let tableTitleText = 'Rekap Data Per Provinsi';
+                let colNameText = 'Provinsi';
 
-                if (filterProvinsi.value) {
-                    const provName = filterProvinsi.options[filterProvinsi.selectedIndex].text;
-                    params.append('provinsi[]', provName);
-                }
-                if (filterKabupaten.value) {
-                    const kabName = filterKabupaten.options[filterKabupaten.selectedIndex].text;
-                    params.append('kabupaten_kota[]', kabName);
-                }
-                if (filterKecamatan.value) {
-                    const kecName = filterKecamatan.options[filterKecamatan.selectedIndex].text;
-                    params.append('kecamatan[]', kecName);
-                }
+                if (inertiaData) {
+                    // Use Inertia data
+                    currentLevel = inertiaData.currentLevel || 'provinsi';
 
-                const apiEndpoint = `${API_BASE}/dashboard/province-statistics`;
-                const response = await fetch(`${apiEndpoint}?${params.toString()}`);
-                const result = await response.json();
+                    // Use levelData if available (shows data based on filter level)
+                    if (inertiaData.levelData && inertiaData.levelData.length > 0) {
+                        levelData = inertiaData.levelData;
+                    } else if (inertiaData.provinsiData) {
+                        levelData = inertiaData.provinsiData;
+                    }
 
-                if (result.stats && result.stats.provinsiData) {
-                    levelData = result.stats.provinsiData;
-                    // totals = result.stats.totals || {};
+                    // Set titles based on current level
+                    if (currentLevel === 'desa') {
+                        tableTitleText = 'Rekap Data Per Desa';
+                        colNameText = 'Desa';
+                    } else if (currentLevel === 'kecamatan') {
+                        tableTitleText = 'Rekap Data Per Kecamatan';
+                        colNameText = 'Kecamatan';
+                    } else if (currentLevel === 'kabupaten') {
+                        tableTitleText = 'Rekap Data Per Kabupaten/Kota';
+                        colNameText = 'Kabupaten/Kota';
+                    }
+
+                    // Set totals from Inertia data
+                    if (inertiaData.totalKeseluruhan) {
+                        totals = {
+                            totalDesa: inertiaData.totalKeseluruhan.jumlahDesa,
+                            totalPemetaan: inertiaData.totalKeseluruhan.pemetaanMasuk,
+                            persenTotal: inertiaData.totalKeseluruhan.persenPemetaan
+                        };
+                    }
+                } else {
+                    // Fallback to regular API
+                    const params = new URLSearchParams({
+                        per_page: 100,
+                        page: 1,
+                        include_rejected: 0,
+                        luas_dibawah_600: 0,
+                        is_start_development: filterMulaiBangun.checked ? 1 : 0,
+                        progress_100_percent: filterProgress100.checked ? 1 : 0,
+                        sort_column: 'id',
+                        sort_direction: 'desc'
+                    });
+
+                    if (filterProvinsi.value) {
+                        const provName = filterProvinsi.options[filterProvinsi.selectedIndex].text;
+                        params.append('provinsi[]', provName);
+                    }
+                    if (filterKabupaten.value) {
+                        const kabName = filterKabupaten.options[filterKabupaten.selectedIndex].text;
+                        params.append('kabupaten_kota[]', kabName);
+                    }
+                    if (filterKecamatan.value) {
+                        const kecName = filterKecamatan.options[filterKecamatan.selectedIndex].text;
+                        params.append('kecamatan[]', kecName);
+                    }
+
+                    const apiEndpoint = `${API_BASE}/dashboard/province-statistics`;
+                    const response = await fetch(`${apiEndpoint}?${params.toString()}`);
+                    const result = await response.json();
+
+                    if (result.stats && result.stats.provinsiData) {
+                        levelData = result.stats.provinsiData;
+                        totals = result.stats.totals || {};
+                    }
                 }
 
                 // Save data for CSV export
