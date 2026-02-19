@@ -163,6 +163,117 @@
                 opacity: 0;
             }
         }
+
+        /* Bar Chart Styles */
+        .bar-chart-container {
+            padding: 16px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .bar-chart-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            gap: 8px;
+        }
+
+        .bar-chart-label {
+            min-width: 180px;
+            max-width: 220px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #374151;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 640px) {
+            .bar-chart-label {
+                min-width: 120px;
+                max-width: 140px;
+                font-size: 10px;
+            }
+        }
+
+        .bar-chart-track {
+            flex: 1;
+            background: #f3f4f6;
+            border-radius: 6px;
+            height: 22px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-chart-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 6px;
+            min-width: 0;
+        }
+
+        .bar-chart-value {
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .bar-chart-value-outside {
+            font-size: 10px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-left: 6px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .bar-chart-row:hover .bar-chart-track {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+
+        .bar-chart-row:hover .bar-chart-label {
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+
+        /* X-axis ticks */
+        .bar-chart-axis {
+            display: flex;
+            padding-left: 228px;
+            margin-top: 8px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 6px;
+        }
+
+        @media (max-width: 640px) {
+            .bar-chart-axis {
+                padding-left: 148px;
+            }
+        }
+
+        .bar-chart-axis span {
+            flex: 1;
+            text-align: center;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .bar-chart-axis span:first-child {
+            text-align: left;
+        }
+
+        .bar-chart-axis span:last-child {
+            text-align: right;
+        }
     </style>
 </head>
 
@@ -356,6 +467,25 @@
                     <tfoot id="stats-table-footer" class="bg-blue-100 font-semibold sticky bottom-0">
                     </tfoot>
                 </table>
+            </div>
+        </div>
+
+        <!-- Bar Chart: Persentase Pemetaan Lahan -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 mb-8 overflow-hidden">
+            <div class="bg-gradient-to-r from-[#065366] to-[#0a7c9a] px-6 py-4 flex items-center justify-between">
+                <h2 id="bar-chart-title" class="text-lg font-semibold text-white flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                            d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                    </svg>
+                    Persentase Pemetaan Lahan per Provinsi (Urutan Tertinggi)
+                </h2>
+            </div>
+            <div id="bar-chart-area" class="bar-chart-container">
+                <div class="flex flex-col items-center gap-2 py-8 text-gray-500">
+                    <div class="spinner-sm"></div>
+                    <span>Menunggu data...</span>
+                </div>
             </div>
         </div>
 
@@ -686,6 +816,9 @@
             if (isClickable) {
                 attachDrillDownListeners();
             }
+
+            // Update the bar chart to match table data
+            renderBarChart();
         }
 
         // Attach drill-down click listeners to table rows
@@ -1567,6 +1700,95 @@
             const btn = document.getElementById('gps-btn');
             btn.classList.remove('locating');
             alert('Gagal mendapatkan lokasi: ' + e.message);
+        }
+
+        // ===== Bar Chart Feature =====
+        function renderBarChart() {
+            const chartArea = document.getElementById('bar-chart-area');
+            const chartTitle = document.getElementById('bar-chart-title');
+
+            if (!chartArea) return;
+
+            // Update chart title based on current level
+            const levelLabel = currentTableLevel || 'Provinsi';
+            chartTitle.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+                Persentase Pemetaan Lahan per ${levelLabel} (Urutan Tertinggi)
+            `;
+
+            if (!currentTableData || currentTableData.length === 0) {
+                chartArea.innerHTML = `
+                    <div class="flex flex-col items-center gap-2 py-8 text-gray-500">
+                        <span>Tidak ada data untuk ditampilkan</span>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort by persenPemetaan descending
+            const sorted = [...currentTableData].sort((a, b) => {
+                const valA = typeof a.persenPemetaan === 'number' ? a.persenPemetaan : parseFloat(a.persenPemetaan) || 0;
+                const valB = typeof b.persenPemetaan === 'number' ? b.persenPemetaan : parseFloat(b.persenPemetaan) || 0;
+                return valB - valA;
+            });
+
+            // Color function based on percentage
+            function getBarColor(persen) {
+                if (persen >= 75) return 'linear-gradient(90deg, #059669, #10b981)';
+                if (persen >= 50) return 'linear-gradient(90deg, #d97706, #f59e0b)';
+                if (persen >= 25) return 'linear-gradient(90deg, #ea580c, #f97316)';
+                return 'linear-gradient(90deg, #b91c1c, #dc2626)';
+            }
+
+            // Build bars HTML
+            const barsHTML = sorted.map(item => {
+                const name = item.provinsi || item.kabupaten || item.kecamatan || item.desa || '-';
+                const persen = typeof item.persenPemetaan === 'number' ? item.persenPemetaan : parseFloat(item.persenPemetaan) || 0;
+                const widthPct = Math.min(persen, 100);
+                const color = getBarColor(persen);
+
+                // If bar too small, show value outside
+                const showInside = widthPct >= 12;
+
+                return `
+                    <div class="bar-chart-row" title="${name}: ${persen.toFixed(1)}%">
+                        <div class="bar-chart-label">${name}</div>
+                        <div class="bar-chart-track">
+                            <div class="bar-chart-fill" style="width: ${widthPct}%; background: ${color};">
+                                ${showInside ? `<span class="bar-chart-value">${persen.toFixed(1)}%</span>` : ''}
+                            </div>
+                        </div>
+                        ${!showInside ? `<span class="bar-chart-value-outside">${persen.toFixed(1)}%</span>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // X-axis
+            const axisHTML = `
+                <div class="bar-chart-axis">
+                    <span>0%</span>
+                    <span>25%</span>
+                    <span>50%</span>
+                    <span>75%</span>
+                    <span>100%</span>
+                </div>
+            `;
+
+            chartArea.innerHTML = barsHTML + axisHTML;
+
+            // Trigger animation: set widths after a frame
+            requestAnimationFrame(() => {
+                const fills = chartArea.querySelectorAll('.bar-chart-fill');
+                fills.forEach(fill => {
+                    const targetWidth = fill.style.width;
+                    fill.style.width = '0%';
+                    requestAnimationFrame(() => {
+                        fill.style.width = targetWidth;
+                    });
+                });
+            });
         }
 
         // Loading helpers
