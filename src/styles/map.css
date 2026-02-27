@@ -1,0 +1,313 @@
+/* ============================================
+   MAP & LEAFLET OVERRIDES — Dark Theme
+   ============================================ */
+
+/* --- Leaflet Controls --- */
+.leaflet-control-zoom a {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-glass) !important;
+    backdrop-filter: blur(12px);
+}
+
+.leaflet-control-zoom a:hover {
+    background: var(--bg-card-hover) !important;
+    color: var(--accent-blue) !important;
+}
+
+.leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.85) !important;
+    color: var(--text-secondary) !important;
+    font-size: 10px !important;
+    backdrop-filter: blur(8px);
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+.leaflet-control-attribution a {
+    color: var(--accent-blue) !important;
+}
+
+/* --- Cluster Icons (Density Heatmap for Satellite) --- */
+/* Small density: Orange */
+.marker-cluster-small {
+    background-color: rgba(249, 115, 22, 0.4) !important;
+}
+
+.marker-cluster-small div {
+    background-color: rgba(249, 115, 22, 0.85) !important;
+    color: #fff !important;
+    font-weight: 700;
+}
+
+/* Medium density: Light Green/Emerald */
+.marker-cluster-medium {
+    background-color: rgba(52, 211, 153, 0.5) !important;
+}
+
+.marker-cluster-medium div {
+    background-color: rgba(52, 211, 153, 0.95) !important;
+    color: #fff !important;
+    font-weight: 700;
+}
+
+/* Large density (High): Deep Green */
+.marker-cluster-large {
+    background-color: rgba(16, 185, 129, 0.6) !important;
+}
+
+.marker-cluster-large div {
+    background-color: rgba(16, 185, 129, 1) !important;
+    color: #fff !important;
+    font-weight: 700;
+}
+
+/* --- Custom Popups (Light Glass) --- */
+.leaflet-popup-content-wrapper {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--border-glass) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-xl) !important;
+    color: var(--text-primary) !important;
+}
+
+.leaflet-popup-tip {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--border-glass) !important;
+    box-shadow: none !important;
+}
+
+.leaflet-popup-close-button {
+    color: var(--text-muted) !important;
+    font-size: 18px !important;
+}
+
+.leaflet-popup-close-button:hover {
+    color: var(--text-primary) !important;
+}
+
+/* Popup Inner Content */
+.popup-content {
+    padding: 12px;
+    min-width: 260px;
+    max-width: 320px;
+}
+
+.popup-content h3 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: var(--accent-blue);
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border-glass);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.popup-table {
+    width: 100%;
+    font-size: 0.75rem;
+}
+
+.popup-table td {
+    padding: 3px 0;
+    vertical-align: top;
+}
+
+.popup-table .popup-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    width: 85px;
+}
+
+.popup-table .popup-value {
+    color: var(--text-primary);
+}
+
+.popup-progress-bar {
+    margin-top: 10px;
+    background: rgba(51, 65, 85, 0.5);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+}
+
+.popup-progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s var(--ease-out);
+}
+
+.popup-footer {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popup-status-badge {
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.popup-id {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+}
+
+.popup-note {
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    color: var(--accent-amber);
+}
+
+.popup-directions-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent-blue) !important;
+    border-radius: var(--radius-md);
+    text-decoration: none !important;
+    font-weight: 600;
+    transition: all var(--duration-fast);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.popup-directions-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+/* Loading popup */
+.popup-loading {
+    padding: 16px;
+    min-width: 200px;
+    text-align: center;
+}
+
+.popup-loading .spinner-sm {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-glass);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 8px;
+}
+
+.popup-loading p {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+/* Error popup */
+.popup-error {
+    padding: 16px;
+    text-align: center;
+    color: var(--accent-rose);
+    font-size: 0.8rem;
+}
+
+/* --- Custom marker icon --- */
+.custom-div-icon {
+    background: transparent;
+    border: none;
+}
+
+.marker-icon {
+    width: 32px;
+    height: 32px;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+/* --- GPS Control --- */
+.gps-control {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    background-clip: padding-box;
+    border-radius: var(--radius-sm) !important;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md) !important;
+    transition: all var(--duration-fast) var(--ease-out);
+    backdrop-filter: blur(12px);
+    color: var(--text-secondary);
+}
+
+.gps-control:hover {
+    background: #f8fafc;
+    color: var(--text-primary);
+    border-color: var(--border-accent) !important;
+}
+
+.gps-control.locating svg {
+    animation: spin 1s linear infinite;
+    color: var(--accent-blue);
+}
+
+.gps-control.active {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-color: var(--accent-blue) !important;
+    color: var(--accent-blue);
+}
+
+/* GPS Marker */
+.gps-marker {
+    width: 20px;
+    height: 20px;
+    position: relative;
+}
+
+.gps-marker-dot {
+    width: 14px;
+    height: 14px;
+    background: var(--accent-blue);
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.gps-marker-pulse {
+    width: 20px;
+    height: 20px;
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: gps-pulse 2s ease-out infinite;
+}
+
+@keyframes gps-pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(3);
+        opacity: 0;
+    }
+}
