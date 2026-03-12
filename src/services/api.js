@@ -2,8 +2,11 @@
  * API Service — centralized fetch wrapper for KDKMP portal.
  */
 
-const API_BASE = 'https://pemetaan-lahan.portalkdkmp.id/api';
-const DASHBOARD_BASE = 'https://pemetaan-lahan.portalkdkmp.id';
+const IS_DEV = import.meta.env.DEV;
+const BACKEND_URL = IS_DEV ? '' : 'https://peta-gudang.vercel.app';
+
+const API_BASE = `${BACKEND_URL}/api`;
+const DASHBOARD_BASE = `${BACKEND_URL}/proxy`;
 
 let cachedInertiaVersion = null;
 
