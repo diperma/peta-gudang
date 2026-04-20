@@ -33,6 +33,7 @@ import * as StatsCards from './components/StatsCards.js';
 import * as DataTable from './components/DataTable.js';
 import * as BarChart from './components/BarChart.js';
 import * as MapView from './components/MapView.js';
+import * as ProgressChart from './components/ProgressChart.js';
 import * as Footer from './components/Footer.js';
 
 /**
@@ -47,6 +48,7 @@ function buildLayout() {
       ${StatsCards.render()}
       ${DataTable.render()}
       ${BarChart.render()}
+      ${ProgressChart.render()}
       ${MapView.render()}
       ${Footer.render()}
     </div>
@@ -78,6 +80,7 @@ async function loadAllData() {
     // Update stats table (independent)
     await DataTable.updateTable(apiFilters);
     BarChart.update();
+    ProgressChart.update();
 }
 
 /**

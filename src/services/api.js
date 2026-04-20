@@ -3,7 +3,7 @@
  */
 
 const IS_DEV = import.meta.env.DEV;
-const BACKEND_URL = IS_DEV ? '' : 'https://peta-gudang.vercel.app';
+const BACKEND_URL = IS_DEV ? '' : (import.meta.env.VITE_BACKEND_URL || 'https://peta-gudang.vercel.app');
 
 const API_BASE = `${BACKEND_URL}/api`;
 const DASHBOARD_BASE = `${BACKEND_URL}/proxy`;

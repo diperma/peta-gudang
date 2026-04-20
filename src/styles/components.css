@@ -679,6 +679,10 @@
     padding-top: 6px;
 }
 
+.bar-axis--short {
+    padding-left: 130px;
+}
+
 @media (max-width: 640px) {
     .bar-axis {
         padding-left: 130px;
